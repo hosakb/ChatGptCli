@@ -19,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
     let context = Context::new(api_key, base_url);
     let controller = Controller::new(context);
 
-    controller.new_chat().await.context("During new chat.")?;
+    controller.chat().await.context("During new chat.")?;
 
     Ok(())
 }

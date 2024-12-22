@@ -1,5 +1,3 @@
-use std::pin::Pin;
-
 use anyhow::{anyhow, Context, Result};
 use reqwest::Client;
 use tokio_stream::{Stream, StreamExt};
@@ -24,13 +22,14 @@ impl GptClient {
     pub fn fetch_response_as_stream<'a>(
         &self,
         body: Body,
-    ) -> impl Stream<Item = Result<String>> + 'a {
+    ) -> impl Stream<Item = Result<Vec<ApiResponse>>> + 'a {
         let client = self.client.clone();
         let base_url = self.base_url.clone();
         let api_key = self.api_key.clone();
 
         async_stream::try_stream! {
             let json = serde_json::to_string(&body)?;
+
             let response = client
                 .post(base_url.clone())
                 .header("Content-Type", "application/json")
@@ -55,18 +54,11 @@ impl GptClient {
                         .filter(|line| line.starts_with("data: ") && !line.contains("[DONE]"))
                         .map(|line| line.trim_start_matches("data: ").to_string())
                         .map(|line| {
-                            serde_json::from_str::<ApiResponse>(line.as_str())
-                                .context("Failed to deserialize json response.")
+                            serde_json::from_str::<ApiResponse>(line.as_str()).map_err(|e| anyhow!("Failed to deserialize json response. {}", e))
                         })
                         .collect::<Result<Vec<ApiResponse>>>()?;
 
-                    for line in filtered_response {
-                        for choice in line.choices {
-                            if let Some(content) = choice.delta.content {
-                                yield content.replace("\"", "");
-                            }
-                        }
-                    }
+                    yield filtered_response;
 
                 } else {
                     Err(anyhow!("Failed to read chunk: {:?}", chunk))?; // why no return here?

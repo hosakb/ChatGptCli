@@ -2,19 +2,19 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug)]
 pub struct ApiResponse {
-    id: String,
-    object: String,
-    created: i32,
-    model: String,
-    system_fingerprint: String,
+    // pub id: String,
+    // pub object: String,
+    // pub created: i32,
+    // pub model: String,
+    // pub system_fingerprint: String,
     pub choices: Vec<Choice>,
 }
 #[derive(Deserialize, Debug)]
 pub struct Choice {
-    index: u32,
+    // index: u32,
     pub delta: Delta,
-    logprobs: Option<String>,
-    finish_reason: Option<String>,
+    // logprobs: Option<String>,
+    // finish_reason: Option<String>,
 }
 #[derive(Deserialize, Debug)]
 pub struct Delta {
@@ -24,17 +24,17 @@ pub struct Delta {
 #[derive(Serialize, Clone)]
 // #[serde(rename_all = "kebab-case")]
 pub enum Model {
-    Gpt4oMini,
+    // Gpt4oMini,
     #[serde(rename = "gpt-4o")]
     Gpt4o,
-    GptO1,
+    // GptO1,
 }
 
 #[derive(Serialize, Clone)]
 #[serde(rename_all = "lowercase")]
-enum Role {
-    USER,
-    ASSISTANT,
+pub enum Role {
+    User,
+    Assistant,
 }
 
 #[derive(Serialize, Clone)]
@@ -57,10 +57,7 @@ pub struct Body {
 }
 
 impl Body {
-    pub fn new(model: Model, init_message: String) -> Body {
-        let init_message = Message::new(Role::USER, init_message);
-        let messages = vec![init_message];
-
+    pub fn new(model: Model, messages: Vec<Message>) -> Body {
         Body {
             model,
             messages,
