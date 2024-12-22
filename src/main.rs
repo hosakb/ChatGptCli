@@ -1,10 +1,13 @@
 mod api;
+mod cli;
+mod controller;
+mod model;
 
 use std::env;
 
-use anyhow::{self, Context};
+use anyhow::{self, Context as AnyhowContext};
 
-use api::{Body, GptClient, Model};
+use controller::{Context, Controller};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -13,11 +16,10 @@ async fn main() -> anyhow::Result<()> {
     let api_key = env::var("OPENAI_API_KEY").context("Failed to read api key env.")?;
     let base_url = env::var("BASE_URL").context("Failed to read base url env.")?;
 
-    let client = GptClient::new(base_url, api_key);
+    let context = Context::new(api_key, base_url);
+    let controller = Controller::new(context);
 
-    let body = Body::new(Model::Gpt4o, String::from("Write a very long text."));
-
-    client.send_prompt(body).await?;
+    controller.new_chat().await.context("During new chat.")?;
 
     Ok(())
 }
